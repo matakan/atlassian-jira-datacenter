@@ -1,0 +1,44 @@
+#{{- if and .Values.Datacenter.Enabled (not .Values.Persistence.DatacenterExistingClaimName) }}
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: {{ .Release.Name }}-datacenter-pvc
+#  labels:
+#{{- include "jira-chart.labels" . | indent 4 }}
+#spec:
+#  accessModes: [ {{ .Values.Persistence.DatacenterVolumeClaimTemplates.AccessModes | quote }} ]
+#  resources:
+#    requests:
+#      storage: {{ .Values.Persistence.DatacenterVolumeClaimTemplates.Storage | quote }}
+#  storageClassName: {{ .Values.Persistence.DatacenterVolumeClaimTemplates.StorageClassName | quote }}
+#  {{- if .Values.Persistence.DatacenterVolumeClaimTemplates.Selector.Enabled }}
+#  selector:
+#    matchLabels:
+#      {{- range $key,$value := .Values.Persistence.DatacenterVolumeClaimTemplates.Selector.MatchLabels }}
+#      {{ $key }} : {{ $value }}
+#      {{- end }}
+#    {{- end }}
+#{{- end -}}
+---
+# Above lines are commented out and Below lines are added by mustafa for portworks shared storage
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+    name: px-jira-shared-sc
+provisioner: kubernetes.io/portworx-volume
+parameters:
+   repl: "1"
+   shared: "true"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+   name: px-jira-shared-pvc
+   annotations:
+     volume.beta.kubernetes.io/storage-class: px-jira-shared-sc
+spec:
+   accessModes:
+     - ReadWriteMany
+   resources:
+     requests:
+       storage: 20G

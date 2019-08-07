@@ -1,0 +1,107 @@
+# Documentation: https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+  {{- include "jira-chart.labels" . | indent 4 }}
+
+  annotations:
+  {{- if .Values.PrometheusMetrics.Enabled }}
+    prometheus.io/scrape: "true"
+    prometheus.io/path: {{ .Values.PrometheusMetrics.Path  | quote }}
+    prometheus.io/port: {{ .Values.Service.Port | quote }}
+  {{- end }}
+  {{- range $key, $value := .Values.Service.Annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+spec:
+  ports:
+    # port is what this service should serve on, and targetPort is the port in the container.
+    - port: {{ .Values.Service.Port }}
+      name: jira-main
+      targetPort: {{ .Values.Service.Port }}
+      protocol: {{ .Values.Service.Protocol }}
+    - port: 8888
+      name: jira-internal-connector
+      targetPort: 8888
+      protocol: TCP
+  {{- if .Values.Datacenter.Enabled }}
+    - port: 40001
+      name: rmi
+      protocol: TCP
+      targetPort: 40001
+    - port: 40011
+      name: remote-object
+      protocol: TCP
+      targetPort: 40011
+# four lines below added by mustafa for http connnection
+    - port: 80
+      name: jira-main2
+      targetPort: {{ .Values.Service.Port }}
+      protocol: {{ .Values.Service.Protocol }}
+  {{- end }}
+
+{{- if .Values.Datacenter.Enabled }}
+  clusterIP: None
+{{- else }}
+  type: {{ .Values.Service.Type | default "ClusterIP" }}
+{{- end }}
+
+  selector:
+    app: {{ .Release.Name }}
+---
+# below service definition is added by mustafa in order to introduce headless service which is the default configuration in original helm package
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-2" .Release.Name }}
+  labels:
+  {{- include "jira-chart.labels" . | indent 4 }}
+
+  annotations:
+  {{- if .Values.PrometheusMetrics.Enabled }}
+    prometheus.io/scrape: "true"
+    prometheus.io/path: {{ .Values.PrometheusMetrics.Path  | quote }}
+    prometheus.io/port: {{ .Values.Service.Port | quote }}
+  {{- end }}
+  {{- range $key, $value := .Values.Service.Annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+spec:
+  ports:
+    # port is what this service should serve on, and targetPort is the port in the container.
+    - port: {{ .Values.Service.Port }}
+      name: jira-main
+      targetPort: {{ .Values.Service.Port }}
+      protocol: {{ .Values.Service.Protocol }}
+    - port: 8888
+      name: jira-internal-connector
+      targetPort: 8888
+      protocol: TCP
+  {{- if .Values.Datacenter.Enabled }}
+    - port: 40001
+      name: rmi
+      protocol: TCP
+      targetPort: 40001
+    - port: 40011
+      name: remote-object
+      protocol: TCP
+      targetPort: 40011
+# four lines below added by mustafa for http connnection
+    - port: 80
+      name: jira-main2
+      targetPort: {{ .Values.Service.Port }}
+      protocol: {{ .Values.Service.Protocol }}
+  {{- end }}
+
+{{- if .Values.Datacenter.Enabled }}
+# below 2 lines are added by mustafa
+  type: LoadBalancer
+  sessionAffinity: ClientIP
+{{- else }}
+  type: {{ .Values.Service.Type | default "ClusterIP" }}
+{{- end }}
+
+  selector:
+    app: {{ .Release.Name }}
