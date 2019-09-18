@@ -13,10 +13,10 @@ To run jira on K8s, we need to have the followings:
 - A container image having jira software
 - A trial jira datacenter license
 - A database for storing data. In this example, postgresql running in the same K8s cluster is selected
-- A solution for shared storage. It should provide active-active write by many pods running on different nodes. Portworks is selected
-- A trial license for portworks
+- A solution for shared storage. It should provide active-active write by many pods running on different nodes. Portworx is selected
+- A trial license for portworx
 
-How these ingredients work together is depicted below. Instead of NFS for shared storage, portworks is used in this demo.
+How these ingredients work together is depicted below. Instead of NFS for shared storage, portworx is used in this demo.
 
 
 ![Jira Overview](images/jira_overview.png)
@@ -24,7 +24,7 @@ How these ingredients work together is depicted below. Instead of NFS for shared
 ## DIRECTORY STRUCTURE
 - kubernetes: contains a shell script to spin up a K8s cluster in Google Cloud
 - docker: contains a dockerfile and related files to build a jira image
-- portworks: contains an installation and manifest file for portworks
+- portworx: contains an installation and manifest file for portworx
 - postgres: contains postgres helm package and an installation script
 - jira: contains jira helm package that is customised to run on Google Cloud
 - images: just for visual images for the content
@@ -43,18 +43,18 @@ cd ..
 
 ### Spinning up the kubernetes cluster
 
-Since portworks requires at least 4 core and 4GB of memory, a 2-node K8s cluster having these resources is created in Google Cloud using the below command. It is assumed that you have gcloud client tool installed and running successfully.
+Since portworx requires at least 4 core and 4GB of memory, a 2-node K8s cluster having these resources is created in Google Cloud using the below command. It is assumed that you have gcloud client tool installed and running successfully.
 ```
 cd kubernetes
 ./install.sh <your_project_name> <your_cluster_name>
 cd ..
 ```
 
-### Installing Portworks
+### Installing Portworx
 
-Portworks is installed by following the guidelines in its documentation (5). In the same documentation page, there is a link about how to create the required manifest file to install it (6). A customised manifest file (portworks.yml) is already created and stored in this repo. Be cautious that this file containes some key and licence values specific to this installation, so you may need to follow the link provided in order to obtain a new one.
+Portworx is installed by following the guidelines in its documentation (5). In the same documentation page, there is a link about how to create the required manifest file to install it (6). A customised manifest file (portworx.yml) is already created and stored in this repo. Be cautious that this file containes some key and licence values specific to this installation, so you may need to follow the link provided in order to obtain a new one.
 ```
-cd portworks
+cd portworx
 ./install.sh
 cd ..
 ```
